@@ -29,8 +29,14 @@ class Server {
   }
 
   private configureRoutes(): void {
+    this.app.use((req, res, next) => {
+      console.log(`📨 ${new Date().toISOString()} - ${req.method} ${req.path}`);
+      next();
+    });
+
     // Health check endpoint
     this.app.get('/health', (req, res) => {
+      console.log('Health check called');
       res.status(200).json({ 
         status: 'OK', 
         timestamp: new Date().toISOString(),
