@@ -20,7 +20,7 @@ export const MINUTES_IN_DAY: number = 24 * 60;
 
 // Configuración de la aplicación
 export const APP_CONFIG = {
-  PORT: process.env.PORT || '3000',
+  //PORT: process.env.PORT || '3000',
   NODE_ENV: process.env.NODE_ENV || 'development',
   CACHE_DURATION: 24 * 60 * 60 * 1000, // 24 horas
   REQUEST_TIMEOUT: 10000 // 10 segundos para requests externos
