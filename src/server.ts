@@ -9,7 +9,8 @@ class Server {
 
   constructor() {
     this.app = express();
-    this.port = parseInt(APP_CONFIG.PORT, 10);
+    //IMPORTANTE: Render usa process.env.PORT
+    this.port = parseInt(process.env.PORT || '3000', 10);
     this.controller = new BusinessDaysController();
     this.configureMiddleware();
     this.configureRoutes();
