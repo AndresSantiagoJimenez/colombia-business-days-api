@@ -48,85 +48,99 @@ export class BusinessDateCalculator {
 
   // CAMBIO IMPORTANTE: Esta función ahora es async
   private async adjustToBusinessTime(date: moment.Moment): Promise<moment.Moment> {
-    let adjustedDate = date.clone();
-    
-    // Mientras no sea día hábil, avanzar al siguiente día
-    while (!(await this.isBusinessDay(adjustedDate))) {
-      adjustedDate = this.getNextDayStart(adjustedDate);
-    }
-
-    const currentMinutes = this.getMinutesFromMidnight(adjustedDate);
-
-    // Si antes del horario laboral, ajustar al inicio
-    if (currentMinutes < BUSINESS_HOURS.workDay.start) {
-      adjustedDate = this.setTimeToMinutes(adjustedDate, BUSINESS_HOURS.workDay.start);
-    }
-    // Si después del horario laboral, ir al siguiente día hábil
-    else if (currentMinutes >= BUSINESS_HOURS.workDay.end) {
-      adjustedDate = this.getNextDayStart(adjustedDate);
-      adjustedDate = await this.adjustToBusinessTime(adjustedDate);
-    }
-    // Si durante almuerzo, ajustar al final del almuerzo
-    else if (this.isDuringLunchBreak(adjustedDate)) {
-      adjustedDate = this.setTimeToMinutes(adjustedDate, BUSINESS_HOURS.lunchBreak.end);
-    }
-
-    return adjustedDate;
-  }
-
-  private async addBusinessDays(date: moment.Moment, days: number): Promise<moment.Moment> {
-    let currentDate = date.clone();
-    let daysAdded = 0;
-
-    while (daysAdded < days) {
-      currentDate = currentDate.add(1, 'day');
-      currentDate = this.setTimeToMinutes(currentDate, BUSINESS_HOURS.workDay.start);
+      let adjustedDate = date.clone();
       
-      if (await this.isBusinessDay(currentDate)) {
-        daysAdded++;
+      console.log(`🔄 Adjusting to business time: ${adjustedDate.format('YYYY-MM-DD HH:mm')}`);
+      
+      // Mientras no sea día hábil, avanzar al siguiente día
+      while (!(await this.isBusinessDay(adjustedDate))) {
+          console.log('📅 Not business day, moving to next day');
+          adjustedDate = this.getNextDayStart(adjustedDate);
       }
-    }
 
-    return currentDate;
-  }
-
-  private async addBusinessHours(date: moment.Moment, hours: number): Promise<moment.Moment> {
-    let currentDate = date.clone();
-    let minutesRemaining = hours * MINUTES_IN_HOUR;
-
-    while (minutesRemaining > 0) {
-      const currentMinutes = this.getMinutesFromMidnight(currentDate);
+      const currentMinutes = this.getMinutesFromMidnight(adjustedDate);
+      const workDayStart = BUSINESS_HOURS.workDay.start;
       const workDayEnd = BUSINESS_HOURS.workDay.end;
       const lunchStart = BUSINESS_HOURS.lunchBreak.start;
       const lunchEnd = BUSINESS_HOURS.lunchBreak.end;
 
-      let availableMinutes: number;
+      console.log(`⏰ Current: ${currentMinutes}min (${Math.floor(currentMinutes/60)}:${currentMinutes%60}), Work: ${workDayStart}-${workDayEnd}, Lunch: ${lunchStart}-${lunchEnd}`);
 
-      if (currentMinutes < lunchStart) {
-        availableMinutes = Math.min(lunchStart - currentMinutes, minutesRemaining);
-        currentDate = this.addMinutes(currentDate, availableMinutes);
-      } else if (currentMinutes >= lunchEnd) {
-        availableMinutes = Math.min(workDayEnd - currentMinutes, minutesRemaining);
-        if (availableMinutes > 0) {
-          currentDate = this.addMinutes(currentDate, availableMinutes);
-        } else {
-          currentDate = this.getNextDayStart(currentDate);
-          currentDate = await this.adjustToBusinessTime(currentDate);
-        }
+      // Si antes del horario laboral, ajustar al inicio
+      if (currentMinutes < workDayStart) {
+          console.log('🌅 Before work hours, adjusting to 8:00');
+          adjustedDate = this.setTimeToMinutes(adjustedDate, workDayStart);
+      }
+      // Si después del horario laboral, ir al siguiente día hábil
+      else if (currentMinutes >= workDayEnd) {
+          console.log('🌇 After work hours, moving to next day');
+          adjustedDate = this.getNextDayStart(adjustedDate);
+          adjustedDate = await this.adjustToBusinessTime(adjustedDate);
+      }
+      // Si durante almuerzo, ajustar al final del almuerzo
+      else if (this.isDuringLunchBreak(adjustedDate)) {
+          console.log('🍽️ During lunch break, adjusting to 13:00');
+          adjustedDate = this.setTimeToMinutes(adjustedDate, lunchEnd);
       } else {
-        currentDate = this.setTimeToMinutes(currentDate, lunchEnd);
-        continue;
+          console.log('✅ Already in business hours');
       }
 
-      minutesRemaining -= availableMinutes;
+      return adjustedDate;
+  }
 
-      if (minutesRemaining > 0 && this.getMinutesFromMidnight(currentDate) >= workDayEnd) {
-        currentDate = this.getNextDayStart(currentDate);
-        currentDate = await this.adjustToBusinessTime(currentDate);
+  private async addBusinessHours(date: moment.Moment, hours: number): Promise<moment.Moment> {
+      let currentDate = date.clone();
+      let minutesRemaining = hours * MINUTES_IN_HOUR;
+
+      console.log(`🕒 Starting hours calculation: ${hours} hours from ${currentDate.format('YYYY-MM-DD HH:mm')}`);
+
+      while (minutesRemaining > 0) {
+          // Asegurarnos de que estamos en horario laboral válido
+          currentDate = await this.adjustToBusinessTime(currentDate);
+          
+          const currentMinutes = this.getMinutesFromMidnight(currentDate);
+          const workDayStart = BUSINESS_HOURS.workDay.start;
+          const workDayEnd = BUSINESS_HOURS.workDay.end;
+          const lunchStart = BUSINESS_HOURS.lunchBreak.start;
+          const lunchEnd = BUSINESS_HOURS.lunchBreak.end;
+
+          console.log(`📊 Current: ${currentMinutes}min (${Math.floor(currentMinutes/60)}:${currentMinutes%60}), Remaining: ${minutesRemaining}min`);
+
+          // Si estamos durante el almuerzo, saltar al final del almuerzo
+          if (this.isDuringLunchBreak(currentDate)) {
+              console.log('⏰ Skipping lunch break (12:00-13:00)');
+              currentDate = this.setTimeToMinutes(currentDate, lunchEnd);
+              continue;
+          }
+
+          // Determinar el final del bloque actual
+          let blockEnd: number;
+          if (currentMinutes < lunchStart) {
+              blockEnd = lunchStart; // Bloque mañana (antes del almuerzo)
+              console.log('🌅 Morning block (8:00-12:00)');
+          } else {
+              blockEnd = workDayEnd; // Bloque tarde (después del almuerzo)
+              console.log('🌇 Afternoon block (13:00-17:00)');
+          }
+
+          const availableMinutes = Math.min(blockEnd - currentMinutes, minutesRemaining);
+          
+          console.log(`➡️ Adding ${availableMinutes} minutes (${Math.floor(availableMinutes/60)}h ${availableMinutes%60}m)`);
+
+          if (availableMinutes > 0) {
+              currentDate = this.addMinutes(currentDate, availableMinutes);
+              minutesRemaining -= availableMinutes;
+          }
+
+          // Si terminamos en el fin del día laboral o aún tenemos minutos, ir al siguiente día
+          if (minutesRemaining > 0) {
+              console.log('📅 Moving to next business day');
+              currentDate = this.setTimeToMinutes(currentDate.add(1, 'day'), workDayStart);
+          }
       }
-    }
 
-    return currentDate;
+      console.log(`✅ Final result: ${currentDate.format('YYYY-MM-DD HH:mm')}`);
+      return currentDate;
   }
 
   private async isBusinessDay(date: moment.Moment): Promise<boolean> {
