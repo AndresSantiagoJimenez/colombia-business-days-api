@@ -10,7 +10,7 @@ class Server {
   constructor() {
     this.app = express();
     //IMPORTANTE: Render usa process.env.PORT
-    this.port = parseInt(process.env.PORT || '10000', 10);
+    this.port = parseInt(process.env.PORT || '3000', 10);
     this.controller = new BusinessDaysController();
     this.configureMiddleware();
     this.configureRoutes();
@@ -44,6 +44,11 @@ class Server {
       });
     });
 
+    // 🆕 Nuevo endpoint para status del cache
+    this.app.get('/cache-status', (req, res) => {
+      this.controller.getCacheStatus(req, res);
+    });
+
     // Business days calculation endpoints
     this.app.get('/business-date', (req, res) => {
       this.controller.calculateBusinessDate(req, res);
@@ -59,6 +64,7 @@ class Server {
         message: 'Colombia Business Days API',
         endpoints: {
           health: '/health',
+          cacheStatus: '/cache-status', // 🆕 Nuevo endpoint
           businessDate: '/business-date',
           calculate: '/calculate'
         },
