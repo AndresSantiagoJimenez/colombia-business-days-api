@@ -6,8 +6,8 @@ export class HolidayService {
   private holidays: Map<string, Holiday> = new Map();
   private lastFetch: number = 0;
   private useFallback: boolean = false;
-  private fetchPromise: Promise<void> | null = null; // 🆕 Evitar múltiples requests simultáneos
-  private isPreloaded: boolean = false; // 🆕 Control de pre-carga
+  private fetchPromise: Promise<void> | null = null; //  Evitar múltiples requests simultáneos
+  private isPreloaded: boolean = false; //  Control de pre-carga
 
   // Festivos de Colombia 2024-2025 como respaldo
   private readonly FALLBACK_HOLIDAYS: Holiday[] = [
@@ -55,12 +55,12 @@ export class HolidayService {
   public async getHolidays(): Promise<Map<string, Holiday>> {
     const now = Date.now();
     
-    // 🆕 Si ya tenemos datos y no han expirado, retornar inmediatamente
+    //  Si ya tenemos datos y no han expirado, retornar inmediatamente
     if (this.holidays.size > 0 && (now - this.lastFetch) < APP_CONFIG.CACHE_DURATION) {
       return this.holidays;
     }
     
-    // 🆕 Si ya hay un fetch en progreso, esperar a que termine
+    //  Si ya hay un fetch en progreso, esperar a que termine
     if (this.fetchPromise) {
       await this.fetchPromise;
       return this.holidays;
@@ -76,12 +76,12 @@ export class HolidayService {
 
   private async fetchHolidays(): Promise<void> {
     try {
-      console.log('🔄 Fetching holidays from external service...');
+      console.log(' Fetching holidays from external service...');
       const response = await axios.get<Holiday[]>(HOLIDAYS_URL, {
         timeout: APP_CONFIG.REQUEST_TIMEOUT
       });
       
-      // 🆕 Crear nuevo Map primero para evitar estado inconsistente
+      //  Crear nuevo Map primero para evitar estado inconsistente
       const newHolidays = new Map<string, Holiday>();
       
       response.data.forEach(holiday => {
@@ -89,20 +89,20 @@ export class HolidayService {
         newHolidays.set(dateKey, holiday);
       });
       
-      // 🆕 Atomic update
+      //  Atomic update
       this.holidays = newHolidays;
       this.lastFetch = Date.now();
       this.useFallback = false;
-      console.log(`✅ Holidays loaded successfully: ${this.holidays.size} holidays`);
+      console.log(`Holidays loaded successfully: ${this.holidays.size} holidays`);
       
     } catch (error) {
-      console.warn('⚠️ Unable to fetch holidays from external service, using fallback data');
+      console.warn('Unable to fetch holidays from external service, using fallback data');
       this.useFallbackData();
     }
   }
 
   private useFallbackData(): void {
-    // 🆕 Crear nuevo Map en lugar de modificar el existente
+    //  Crear nuevo Map en lugar de modificar el existente
     const newHolidays = new Map<string, Holiday>();
     
     this.FALLBACK_HOLIDAYS.forEach(holiday => {
@@ -113,33 +113,33 @@ export class HolidayService {
     this.holidays = newHolidays;
     this.lastFetch = Date.now();
     this.useFallback = true;
-    console.log(`🛡️ Using fallback holidays data: ${this.holidays.size} holidays`);
+    console.log(` Using fallback holidays data: ${this.holidays.size} holidays`);
   }
 
-  // 🆕 Nuevo método: Pre-cargar festivos al inicializar
+  //  Nuevo método: Pre-cargar festivos al inicializar
   public async preloadHolidays(): Promise<void> {
     if (this.isPreloaded) {
       return;
     }
 
     try {
-      console.log('🚀 Pre-loading holidays...');
+      console.log('Pre-loading holidays...');
       await this.getHolidays();
       this.isPreloaded = true;
-      console.log('✅ Holidays preloaded successfully');
+      console.log('Holidays preloaded successfully');
     } catch (error) {
-      console.warn('⚠️ Holiday preload failed, will load on first request:', error);
+      console.warn('Holiday preload failed, will load on first request:', error);
     }
   }
 
-  // 🆕 Nuevo método: Verificar si es festivo sin obtener todos los holidays
+  // Nuevo método: Verificar si es festivo sin obtener todos los holidays
   public async isHoliday(date: Date): Promise<boolean> {
     const holidays = await this.getHolidays();
     const dateKey = this.formatDateKey(date);
     return holidays.has(dateKey);
   }
 
-  // 🆕 Nuevo método: Obtener festivos por rango (para optimización)
+  // Nuevo método: Obtener festivos por rango (para optimización)
   public async getHolidaysInRange(startDate: Date, endDate: Date): Promise<Set<string>> {
     const holidays = await this.getHolidays();
     const holidaySet = new Set<string>();
@@ -160,7 +160,7 @@ export class HolidayService {
     return this.useFallback;
   }
 
-  // 🆕 Nuevo método: Obtener estadísticas del cache
+  // Nuevo método: Obtener estadísticas del cache
   public getCacheStatus(): { size: number; lastFetch: Date; usingFallback: boolean } {
     return {
       size: this.holidays.size,

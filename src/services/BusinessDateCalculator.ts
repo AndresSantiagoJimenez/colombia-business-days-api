@@ -35,12 +35,12 @@ export class BusinessDateCalculator {
 
   private async inicializarCache(): Promise<void> {
     try {
-      console.log('🚀 Inicializando cache de festivos...');
+      console.log('Inicializando cache de festivos...');
       await this.holidayService.preloadHolidays();
       await this.actualizarCacheLocal();
-      console.log(`✅ Cache de festivos inicializado: ${this.holidayCache.size} festivos`);
+      console.log(`Cache de festivos inicializado: ${this.holidayCache.size} festivos`);
     } catch (error) {
-      console.warn('⚠️ Cache de festivos no pudo inicializarse:', error);
+      console.warn('Cache de festivos no pudo inicializarse:', error);
     }
   }
 
@@ -54,9 +54,9 @@ export class BusinessDateCalculator {
       }
       
       this.cacheLoaded = true;
-      console.log(`📊 Cache local actualizado: ${this.holidayCache.size} festivos en cache`);
+      console.log(`Cache local actualizado: ${this.holidayCache.size} festivos en cache`);
     } catch (error) {
-      console.warn('⚠️ No se pudo actualizar cache local:', error);
+      console.warn('No se pudo actualizar cache local:', error);
     }
   }
 
@@ -77,24 +77,24 @@ export class BusinessDateCalculator {
       throw new Error('Invalid date provided');
     }
 
-    console.log(`🚀 CALCULANDO: ${days} días + ${hours} horas desde ${currentDate.format('YYYY-MM-DD HH:mm')}`);
+    console.log(`CALCULANDO: ${days} días + ${hours} horas desde ${currentDate.format('YYYY-MM-DD HH:mm')}`);
 
     // 1. Ajustar a tiempo hábil inicial
     currentDate = await this.adjustToBusinessTime(currentDate);
     
-    // 🆕 ESTRATEGIA OPTIMIZADA PARA GRANDES CANTIDADES
+    // ESTRATEGIA OPTIMIZADA PARA GRANDES CANTIDADES
     if (days > 50 && hours === 0) {
       // Caso optimizado: muchos días, cero horas
-      console.log('⚡ Usando estrategia optimizada para días masivos');
+      console.log('Usando estrategia optimizada para días masivos');
       currentDate = await this.agregarDiasMasivosOptimizado(currentDate, days);
     } else if (days > 0 || hours > 0) {
       // Caso general: usar método unificado
       const totalBusinessMinutes = this.calcularMinutosHabilesTotales(days, hours);
-      console.log(`🔄 Minutos hábiles a agregar: ${totalBusinessMinutes}min`);
+      console.log(`Minutos hábiles a agregar: ${totalBusinessMinutes}min`);
       currentDate = await this.agregarMinutosHabilesUnificado(currentDate, totalBusinessMinutes);
     }
 
-    console.log(`🎯 RESULTADO FINAL: ${currentDate.format('YYYY-MM-DD HH:mm')}`);
+    console.log(`RESULTADO FINAL: ${currentDate.format('YYYY-MM-DD HH:mm')}`);
     return currentDate.utc().toDate();
   }
 
@@ -108,10 +108,10 @@ export class BusinessDateCalculator {
     const totalMinutos = (dias * minutosPorDiaHabil) + (horas * MINUTES_IN_HOUR);
     
     // DEBUG DETALLADO
-    console.log(`🔍 DEBUG Conversión Detallada:`);
-    console.log(`   Días: ${dias} × ${minutosPorDiaHabil}min/día = ${dias * minutosPorDiaHabil}min`);
-    console.log(`   Horas: ${horas} × ${MINUTES_IN_HOUR}min/hora = ${horas * MINUTES_IN_HOUR}min`);
-    console.log(`   TOTAL: ${totalMinutos}min`);
+    console.log(`DEBUG Conversión Detallada:`);
+    console.log(`Días: ${dias} × ${minutosPorDiaHabil}min/día = ${dias * minutosPorDiaHabil}min`);
+    console.log(`Horas: ${horas} × ${MINUTES_IN_HOUR}min/hora = ${horas * MINUTES_IN_HOUR}min`);
+    console.log(`TOTAL: ${totalMinutos}min`);
     
     return totalMinutos;
   }
@@ -126,11 +126,11 @@ export class BusinessDateCalculator {
     let fechaActual = fechaInicio.clone();
     let minutosRestantes = minutosTotales;
 
-    console.log(`🔨 Iniciando adición unificada: ${minutosRestantes} minutos`);
+    console.log(`Iniciando adición unificada: ${minutosRestantes} minutos`);
 
-    // 🆕 Aumentar límite para grandes cantidades
+    // Aumentar límite para grandes cantidades
     let iteracion = 0;
-    const limiteIteraciones = Math.max(1000, minutosTotales / 480 * 2); // 🆕 Límite dinámico
+    const limiteIteraciones = Math.max(1000, minutosTotales / 480 * 2); //  Límite dinámico
     
     while (minutosRestantes > 0 && iteracion < limiteIteraciones) {
       iteracion++;
@@ -141,14 +141,14 @@ export class BusinessDateCalculator {
       const horaActual = this.obtenerMinutosDesdeMedianoche(fechaActual);
       const minutosDisponiblesHoy = this.calcularMinutosDisponiblesHoy(horaActual);
       
-      // 🆕 Log cada 50 iteraciones para no saturar console
+      // Log cada 50 iteraciones para no saturar console
       if (iteracion % 50 === 0) {
-        console.log(`📊 Iteración ${iteracion}: ${fechaActual.format('YYYY-MM-DD')} | Restante: ${minutosRestantes}min`);
+        console.log(`Iteración ${iteracion}: ${fechaActual.format('YYYY-MM-DD')} | Restante: ${minutosRestantes}min`);
       }
 
       if (minutosDisponiblesHoy >= minutosRestantes) {
         // Podemos completar todo hoy
-        console.log(`✅ Completando ${minutosRestantes} minutos hoy`);
+        console.log(`Completando ${minutosRestantes} minutos hoy`);
         fechaActual = this.agregarMinutosEnDia(fechaActual, minutosRestantes);
         minutosRestantes = 0;
       } else {
@@ -162,9 +162,9 @@ export class BusinessDateCalculator {
     }
 
     if (iteracion >= limiteIteraciones) {
-      console.error(`❌ Límite de iteraciones alcanzado: ${iteracion}`);
-      console.error(`   Minutos restantes: ${minutosRestantes}`);
-      console.error(`   Fecha actual: ${fechaActual.format('YYYY-MM-DD HH:mm')}`);
+      console.error(`Límite de iteraciones alcanzado: ${iteracion}`);
+      console.error(`Minutos restantes: ${minutosRestantes}`);
+      console.error(`Fecha actual: ${fechaActual.format('YYYY-MM-DD HH:mm')}`);
     }
 
     return fechaActual;
@@ -183,28 +183,28 @@ export class BusinessDateCalculator {
     const finAlmuerzo = BUSINESS_HOURS.lunchBreak.end;
 
     // VERIFICACIÓN DE DEBUG
-    console.log(`🔍 DEBUG Disponibles - Hora: ${horaActual}, Almuerzo: ${inicioAlmuerzo}-${finAlmuerzo}, Jornada: ${inicioJornada}-${finJornada}`);
+    console.log(` DEBUG Disponibles - Hora: ${horaActual}, Almuerzo: ${inicioAlmuerzo}-${finAlmuerzo}, Jornada: ${inicioJornada}-${finJornada}`);
 
     let minutosDisponibles = 0;
 
     if (horaActual < inicioAlmuerzo) {
       // Antes del almuerzo: tiempo desde ahora hasta almuerzo
       minutosDisponibles = (inicioAlmuerzo - horaActual);
-      console.log(`   Antes almuerzo: ${minutosDisponibles}min hasta almuerzo`);
+      console.log(`Antes almuerzo: ${minutosDisponibles}min hasta almuerzo`);
     } 
     
     // SIEMPRE agregar tiempo después del almuerzo (si estamos antes del fin de jornada)
     if (horaActual < finAlmuerzo) {
       // Si estamos antes o durante almuerzo, tiempo después de almuerzo
       minutosDisponibles += (finJornada - finAlmuerzo);
-      console.log(`   Después almuerzo: ${finJornada - finAlmuerzo}min`);
+      console.log(`Después almuerzo: ${finJornada - finAlmuerzo}min`);
     } else if (horaActual >= finAlmuerzo) {
       // Si estamos después del almuerzo, tiempo desde ahora hasta fin de jornada
       minutosDisponibles += (finJornada - horaActual);
-      console.log(`   Después almuerzo (desde actual): ${finJornada - horaActual}min`);
+      console.log(`Después almuerzo (desde actual): ${finJornada - horaActual}min`);
     }
 
-    console.log(`   TOTAL disponibles: ${minutosDisponibles}min`);
+    console.log(`TOTAL disponibles: ${minutosDisponibles}min`);
     return Math.max(0, minutosDisponibles);
   }
 
@@ -215,7 +215,7 @@ export class BusinessDateCalculator {
     let fechaActual = fecha.clone();
     let minutosRestantes = minutosAAgregar;
 
-    console.log(`⏱️ Agregando ${minutosAAgregar} minutos en el día: ${fechaActual.format('HH:mm')}`);
+    console.log(`Agregando ${minutosAAgregar} minutos en el día: ${fechaActual.format('HH:mm')}`);
 
     while (minutosRestantes > 0) {
       const horaActual = this.obtenerMinutosDesdeMedianoche(fechaActual);
@@ -225,7 +225,7 @@ export class BusinessDateCalculator {
 
       // Si estamos en horario de almuerzo, saltar al final
       if (this.estaEnHorarioAlmuerzo(fechaActual)) {
-        console.log('🍽️ Saltando horario de almuerzo');
+        console.log('Saltando horario de almuerzo');
         fechaActual = this.establecerTiempoEnMinutos(fechaActual, finAlmuerzo);
         continue;
       }
@@ -241,7 +241,7 @@ export class BusinessDateCalculator {
       const segmentoDisponible = finSegmento - horaActual;
       const minutosAAgregarAhora = Math.min(minutosRestantes, segmentoDisponible);
 
-      console.log(`   Segmento: ${horaActual}→${finSegmento} (${segmentoDisponible}min) | Agregando: ${minutosAAgregarAhora}min`);
+      console.log(`Segmento: ${horaActual}→${finSegmento} (${segmentoDisponible}min) | Agregando: ${minutosAAgregarAhora}min`);
       
       fechaActual = this.agregarMinutos(fechaActual, minutosAAgregarAhora);
       minutosRestantes -= minutosAAgregarAhora;
@@ -260,10 +260,10 @@ export class BusinessDateCalculator {
   private async adjustToBusinessTime(date: moment.Moment): Promise<moment.Moment> {
     let adjustedDate = date.clone();
     
-    console.log(`🔄 Ajustando a tiempo hábil: ${adjustedDate.format('YYYY-MM-DD HH:mm')}`);
+    console.log(`Ajustando a tiempo hábil: ${adjustedDate.format('YYYY-MM-DD HH:mm')}`);
     
     while (!(await this.esDiaHabil(adjustedDate))) {
-      console.log('📅 No es día hábil, avanzando al siguiente día');
+      console.log('No es día hábil, avanzando al siguiente día');
       adjustedDate = this.obtenerInicioSiguienteDia(adjustedDate);
     }
 
@@ -272,24 +272,24 @@ export class BusinessDateCalculator {
     const finJornada = BUSINESS_HOURS.workDay.end;
 
     if (minutosActual < inicioJornada) {
-      console.log('🌅 Antes del horario laboral, ajustando a 8:00');
+      console.log('Antes del horario laboral, ajustando a 8:00');
       adjustedDate = this.establecerTiempoEnMinutos(adjustedDate, inicioJornada);
     }
     else if (minutosActual >= finJornada) {
-      console.log('🌇 Después del horario laboral, avanzando al siguiente día');
+      console.log('Después del horario laboral, avanzando al siguiente día');
       adjustedDate = await this.obtenerInicioSiguienteDiaHabil(adjustedDate);
     }
     else if (this.estaEnHorarioAlmuerzo(adjustedDate)) {
-      console.log('🍽️ Durante almuerzo, ajustando a 13:00');
+      console.log('Durante almuerzo, ajustando a 13:00');
       adjustedDate = this.establecerTiempoEnMinutos(adjustedDate, BUSINESS_HOURS.lunchBreak.end);
     } else {
-      console.log('✅ Ya en horario hábil');
+      console.log('Ya en horario hábil');
     }
 
     return adjustedDate;
   }
 
-  // 🆕 Método auxiliar para formatear clave
+  // Método auxiliar para formatear clave
   private formatearClaveFecha(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -348,7 +348,7 @@ export class BusinessDateCalculator {
   }
 
   /**
-   * 🆕 Método optimizado para grandes cantidades de días
+   * Método optimizado para grandes cantidades de días
    */
   private async agregarDiasMasivosOptimizado(
     fechaInicio: moment.Moment, 
@@ -362,7 +362,7 @@ export class BusinessDateCalculator {
       );
     }
 
-    console.log(`⚡ Usando método optimizado para ${dias} días`);
+    console.log(`Usando método optimizado para ${dias} días`);
     
     let fechaActual = fechaInicio.clone();
     let diasRestantes = dias;
@@ -381,7 +381,7 @@ export class BusinessDateCalculator {
         const diasASaltar = semanasCompletas * 7;
         fechaActual = fechaActual.add(diasASaltar, 'days');
         diasRestantes -= semanasCompletas * diasEnSemanaActual;
-        console.log(`📅 Saltando ${semanasCompletas} semanas (${diasASaltar} días)`);
+        console.log(`Saltando ${semanasCompletas} semanas (${diasASaltar} días)`);
       } else {
         // Avanzar días individuales en la última semana
         fechaActual = await this.avanzarDiasHabilesIndividuales(fechaActual, diasEnUltimaSemana);
@@ -393,7 +393,7 @@ export class BusinessDateCalculator {
   }
 
   /**
-   * 🆕 Calcular días hábiles en una semana
+   * Calcular días hábiles en una semana
    */
   private async calcularDiasHabilesEnSemana(fecha: moment.Moment): Promise<number> {
     let diasHabiles = 0;
@@ -410,7 +410,7 @@ export class BusinessDateCalculator {
   }
 
   /**
-   * 🆕 Avanzar N días hábiles individualmente
+   * Avanzar N días hábiles individualmente
    */
   private async avanzarDiasHabilesIndividuales(
     fecha: moment.Moment, 

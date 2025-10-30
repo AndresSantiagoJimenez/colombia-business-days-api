@@ -13,35 +13,35 @@ export class BusinessDaysController {
 
   constructor(calculator?: BusinessDateCalculator) {
     this.calculator = calculator || new BusinessDateCalculator();
-    this.inicializarPreload(); // 🆕 Inicializar pre-loading en segundo plano
+    this.inicializarPreload(); // Inicializar pre-loading en segundo plano
   }
 
   /**
-   * 🆕 Inicializar pre-loading de recursos en segundo plano
+   * Inicializar pre-loading de recursos en segundo plano
    */
   private inicializarPreload(): void {
     // Usar setTimeout para no bloquear el startup del servidor
     setTimeout(async () => {
       try {
-        console.log('🚀 Inicializando pre-loading de recursos...');
+        console.log('Inicializando pre-loading de recursos...');
         
-        // 🆕 Llamar al método de pre-loading del calculator si existe
+        // Llamar al método de pre-loading del calculator si existe
         if (typeof (this.calculator as any).inicializarCache === 'function') {
           await (this.calculator as any).inicializarCache();
         }
         
-        console.log('✅ Pre-loading de recursos completado');
+        console.log('Pre-loading de recursos completado');
       } catch (error) {
-        console.warn('⚠️ Pre-loading falló, pero la app sigue funcionando:', error);
+        console.warn('Pre-loading falló, pero la app sigue funcionando:', error);
       }
-    }, 1000); // 🆕 Esperar 1 segundo después del startup
+    }, 1000); // Esperar 1 segundo después del startup
   }
 
   public async calculateBusinessDate(req: Request, res: Response): Promise<void> {
     try {
       const { days, hours, date } = req.query;
 
-      // 🆕 Agregar log de performance
+      // Agregar log de performance
       const startTime = Date.now();
       
       const validationResult = this.validateParameters(days, hours, date);
@@ -66,7 +66,7 @@ export class BusinessDaysController {
         return;
       }
 
-      console.log(`📊 Calculando: ${daysNum} días + ${hoursNum} horas desde ${date || 'now'}`);
+      console.log(`Calculando: ${daysNum} días + ${hoursNum} horas desde ${date || 'now'}`);
 
       const resultDate = await this.calculator.calculateBusinessDateTime(
         daysNum,
@@ -74,9 +74,9 @@ export class BusinessDaysController {
         date as string
       );
 
-      // 🆕 Log de performance
+      // Log de performance
       const endTime = Date.now();
-      console.log(`⏱️  Tiempo de cálculo: ${endTime - startTime}ms`);
+      console.log(`Tiempo de cálculo: ${endTime - startTime}ms`);
 
       const response: BusinessDaysResponse = {
         date: resultDate.toISOString().replace(/\.\d{3}Z$/, 'Z')
@@ -89,11 +89,11 @@ export class BusinessDaysController {
     }
   }
 
-    // 🆕 Nuevo endpoint para verificar estado del cache
-  // 🆕 Nuevo endpoint para verificar estado del cache - VERSIÓN CORREGIDA
+    // Nuevo endpoint para verificar estado del cache
+  // Nuevo endpoint para verificar estado del cache - VERSIÓN CORREGIDA
   public async getCacheStatus(req: Request, res: Response): Promise<void> {
     try {
-      // 🆕 Usar el método público getCacheStatus del calculator
+      // Usar el método público getCacheStatus del calculator
       const cacheStatus = this.calculator.getCacheStatus();
       
       res.status(200).json({
@@ -117,7 +117,7 @@ export class BusinessDaysController {
         return { isValid: false, error: 'Days must be a positive integer' };
       }
       
-      // 🆕 Validación para números muy grandes
+      // Validación para números muy grandes
       if (daysNum > 100000) {
         return { isValid: false, error: 'Days value too large. Maximum allowed: 100,000' };
       }
@@ -129,7 +129,7 @@ export class BusinessDaysController {
         return { isValid: false, error: 'Hours must be a positive integer' };
       }
       
-      // 🆕 Validación para números muy grandes
+      // Validación para números muy grandes
       if (hoursNum > 100000) {
         return { isValid: false, error: 'Hours value too large. Maximum allowed: 100,000' };
       }
